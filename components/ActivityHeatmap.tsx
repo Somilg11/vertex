@@ -6,7 +6,7 @@ import { format, subDays, eachDayOfInterval, isSameDay, startOfYear } from "date
 import clsx from "clsx";
 
 interface ActivityHeatmapProps {
-    activityDates: Date[];
+    activityDates: string[];
 }
 
 export function ActivityHeatmap({ activityDates }: ActivityHeatmapProps) {

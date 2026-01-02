@@ -23,12 +23,16 @@ export default async function Dashboard() {
     const solvedQuestions = sheets.reduce((acc, sheet) => acc + sheet.solvedQuestions, 0);
 
     // Extract solvedAt dates from all questions in all sheets
-    const activityDates: Date[] = [];
+    // Extract solvedAt dates from all questions in all sheets
+    const activityDates: string[] = [];
     sheets.forEach(sheet => {
         if (sheet.questions) {
             sheet.questions.forEach((q: any) => {
                 if (q.status === "SOLVED" && q.solvedAt) {
-                    activityDates.push(new Date(q.solvedAt));
+                    const date = new Date(q.solvedAt);
+                    if (!isNaN(date.getTime())) {
+                        activityDates.push(date.toISOString());
+                    }
                 }
             });
         }
