@@ -74,15 +74,33 @@ export function ImportSheet() {
 
                     if (lowerKey.includes("title") || lowerKey.includes("problem") || lowerKey.includes("name")) {
                         title = String(value);
-                    } else if (lowerKey.includes("link") || lowerKey.includes("url")) {
+                    } else if (
+                        lowerKey.includes("link") ||
+                        lowerKey.includes("url") ||
+                        lowerKey.includes("href") ||
+                        lowerKey.includes("website") ||
+                        lowerKey.includes("leetcode") ||
+                        lowerKey.includes("gfg")
+                    ) {
                         url = String(value);
-                    } else if (lowerKey.includes("topic") || lowerKey.includes("category")) {
+                    } else if (lowerKey.includes("topic") || lowerKey.includes("category") || lowerKey.includes("tag")) {
                         // Handling multiple topics: split by comma, pipe, or slash
                         // Also handle space if it looks like a list? No, risk of splitting "Binary Tree". Stick to symbols.
                         const topicStr = String(value);
                         topics = topicStr.split(/[,|/]/).map(t => t.trim()).filter(Boolean);
                     } else if (lowerKey.includes("difficulty") || lowerKey.includes("level")) {
                         difficulty = String(value);
+                    }
+                }
+
+                // Fallback: If no URL found by header, check values for URL pattern
+                if (!url) {
+                    const values = Object.values(row);
+                    for (const val of values) {
+                        if (typeof val === 'string' && (val.startsWith('http') || val.startsWith('www.'))) {
+                            url = val;
+                            break;
+                        }
                     }
                 }
 
