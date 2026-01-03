@@ -127,9 +127,12 @@ export function ImportSheet() {
                 setIsOpen(false);
                 // Optionally redirect
                 // router.push(`/sheet/${res.sheetId}`);
+            } else {
+                // @ts-ignore
+                toast.error(res.error || "Failed to save sheet");
             }
         } catch (err) {
-            toast.error("Failed to save sheet");
+            toast.error("An unexpected error occurred");
             console.error(err);
         } finally {
             setIsLoading(false);

@@ -9,50 +9,60 @@ export async function createSheet(sheetData: {
     title: string;
     questions: Partial<IQuestion>[]; // questions now generally have topics[]
 }) {
-    const { userId, redirectToSignIn } = await auth();
-    if (!userId) return redirectToSignIn();
+    try {
+        const { userId, redirectToSignIn } = await auth();
+        if (!userId) return redirectToSignIn();
 
-    await connectToDatabase();
+        await connectToDatabase();
 
-    // Ensure user exists in our DB
-    const user = await User.findOne({ clerkId: userId });
-    if (!user) {
-        // Should ideally be handled by webhook, but lazy create here for MVP
-        // We can't get email easily here without Clerk client, assuming webhook or basic create
-        // For now, let's just create with simple data or fail if stricter
-        await User.create({ clerkId: userId, email: "placeholder@example.com" }); // TODO: Fix with proper User object or Webhook
+        // Ensure user exists in our DB
+        const user = await User.findOne({ clerkId: userId });
+        if (!user) {
+            // Should ideally be handled by webhook, but lazy create here for MVP
+            // We can't get email easily here without Clerk client, assuming webhook or basic create
+            // For now, let's just create with simple data or fail if stricter
+            await User.create({ clerkId: userId, email: "placeholder@example.com" }); // TODO: Fix with proper User object or Webhook
+        }
+
+        const newSheet = await Sheet.create({
+            userId,
+            title: sheetData.title,
+            totalQuestions: sheetData.questions.length,
+            solvedQuestions: 0,
+            questions: sheetData.questions.map((q) => ({
+                ...q,
+                status: "PENDING",
+                isBookmarked: false,
+                notes: "",
+            })),
+        });
+
+        revalidatePath("/dashboard");
+        return { success: true, sheetId: newSheet._id.toString() };
+    } catch (error: any) {
+        console.error("Error creating sheet:", error);
+        return { success: false, error: error.message || "Failed to create sheet" };
     }
-
-    const newSheet = await Sheet.create({
-        userId,
-        title: sheetData.title,
-        totalQuestions: sheetData.questions.length,
-        solvedQuestions: 0,
-        questions: sheetData.questions.map((q) => ({
-            ...q,
-            status: "PENDING",
-            isBookmarked: false,
-            notes: "",
-        })),
-    });
-
-    revalidatePath("/dashboard");
-    return { success: true, sheetId: newSheet._id.toString() };
 }
 
 export async function getSheets() {
-    const { userId } = await auth();
-    if (!userId) return [];
+    try {
+        const { userId } = await auth();
+        if (!userId) return [];
 
-    await connectToDatabase();
-    const sheets = await Sheet.find({ userId }).sort({ createdAt: -1 }).lean();
+        await connectToDatabase();
+        const sheets = await Sheet.find({ userId }).sort({ createdAt: -1 }).lean();
 
-    // Convert _id to string for serialization
-    return sheets.map(sheet => ({
-        ...sheet,
-        _id: sheet._id!.toString(), // Assert _id exists from DB
-        questions: sheet.questions.map(q => ({ ...q, _id: q._id!.toString() }))
-    }));
+        // Convert _id to string for serialization
+        return sheets.map(sheet => ({
+            ...sheet,
+            _id: sheet._id!.toString(), // Assert _id exists from DB
+            questions: sheet.questions.map(q => ({ ...q, _id: q._id!.toString() }))
+        }));
+    } catch (error) {
+        console.error("Error getting sheets:", error);
+        return [];
+    }
 }
 
 export async function getSheet(sheetId: string) {
