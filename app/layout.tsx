@@ -15,8 +15,15 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Vertex",
-  description: "Track your LeetCode progress with Vertex",
+  title: "Vertex - DSA Tracker",
+  description: "Track your LeetCode, Codeforces, and DSA progress with Vertex. The ultimate developer activity tracker.",
+  keywords: ["DSA", "LeetCode", "Tracker", "Programming", "Coding", "Developer Tools"],
+  authors: [{ name: "Vertex Team" }],
+  openGraph: {
+    title: "Vertex - DSA Tracker",
+    description: "Track your LeetCode and DSA progress efficiently.",
+    type: "website",
+  },
 };
 
 import { ClerkProvider } from "@clerk/nextjs";

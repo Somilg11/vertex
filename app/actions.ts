@@ -182,6 +182,55 @@ export async function deleteSheet(sheetId: string) {
     return { success: true };
 }
 
+export async function getDashboardData() {
+    try {
+        const { userId } = await auth();
+        if (!userId) return { sheets: [], activityDates: [] };
+
+        await connectToDatabase();
+
+        // Optimized query: Fetch sheets with only necessary fields for cards
+        // AND fetch a projected list of solved questions for heatmap
+        const sheets = await Sheet.find({ userId })
+            .select("title totalQuestions solvedQuestions createdAt questions.status questions.solvedAt")
+            .sort({ createdAt: -1 })
+            .lean();
+
+        const activityDates: string[] = [];
+
+        // Process for dashboard
+        const processedSheets = sheets.map(sheet => {
+            // Extract activity dates
+            if (sheet.questions) {
+                sheet.questions.forEach((q: any) => {
+                    if (q.status === "SOLVED" && q.solvedAt) {
+                        const date = new Date(q.solvedAt);
+                        if (!isNaN(date.getTime())) {
+                            activityDates.push(date.toISOString());
+                        }
+                    }
+                });
+            }
+
+            // Remove heavy questions array from the returned sheet object to save bandwidth
+            const { questions, ...sheetData } = sheet;
+            return {
+                ...sheetData,
+                _id: sheetData._id!.toString(),
+                // questions: [] // Don't send questions to client
+            };
+        });
+
+        return {
+            sheets: processedSheets,
+            activityDates
+        };
+    } catch (error) {
+        console.error("Error fetching dashboard data:", error);
+        return { sheets: [], activityDates: [] };
+    }
+}
+
 export async function updateQuestionDetails(
     sheetId: string,
     questionId: string,

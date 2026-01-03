@@ -15,7 +15,9 @@ export function ActivityHeatmap({ activityDates }: ActivityHeatmapProps) {
     // For simplicity and mobile-friendliness, let's do last ~5 months (approx 20 weeks).
     const weeksToShow = 26;
     const daysToShow = weeksToShow * 7;
-    const startDate = subDays(today, daysToShow);
+    // Fix: subDays(today, daysToShow) ends at yesterday. Use daysToShow - 1 to end at today.
+    // Or just align logic. Let's make sure the array covers 'today'.
+    const startDate = subDays(today, daysToShow - 1);
 
     const datesToRender = useMemo(() => {
         return eachDayOfInterval({
