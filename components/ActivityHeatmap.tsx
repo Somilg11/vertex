@@ -26,7 +26,19 @@ export function ActivityHeatmap({ activityDates }: ActivityHeatmapProps) {
 
     // Helper to get activity count for a specific day
     const getActivityCount = (date: Date) => {
-        return activityDates.filter(d => d && isSameDay(new Date(d), date)).length;
+        // Normalize comparison to "YYYY-MM-DD" to avoid timezone headaches
+        const targetStr = format(date, "yyyy-MM-dd");
+
+        return activityDates.filter(d => {
+            if (!d) return false;
+            try {
+                // Parse the activity date (which is typically UTC ISO) and convert to local
+                const activityDate = new Date(d);
+                return format(activityDate, "yyyy-MM-dd") === targetStr;
+            } catch (e) {
+                return false;
+            }
+        }).length;
     };
 
     // Helper to get color intensity

@@ -80,7 +80,11 @@ export function ImportSheet() {
                         lowerKey.includes("href") ||
                         lowerKey.includes("website") ||
                         lowerKey.includes("leetcode") ||
-                        lowerKey.includes("gfg")
+                        lowerKey.includes("gfg") ||
+                        lowerKey.includes("codeforces") ||
+                        lowerKey.includes("atcoder") ||
+                        lowerKey.includes("coding ninja") ||
+                        lowerKey.includes("hackerrank")
                     ) {
                         url = String(value);
                     } else if (lowerKey.includes("topic") || lowerKey.includes("category") || lowerKey.includes("tag")) {
