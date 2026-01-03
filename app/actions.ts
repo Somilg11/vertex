@@ -11,6 +11,9 @@ export async function createSheet(sheetData: {
 }) {
     try {
         const { userId, redirectToSignIn } = await auth();
+        // Dynamically import currentUser to avoid static generation issues if any
+        const { currentUser } = await import("@clerk/nextjs/server");
+
         if (!userId) return redirectToSignIn();
 
         await connectToDatabase();
@@ -18,10 +21,15 @@ export async function createSheet(sheetData: {
         // Ensure user exists in our DB
         const user = await User.findOne({ clerkId: userId });
         if (!user) {
-            // Should ideally be handled by webhook, but lazy create here for MVP
-            // We can't get email easily here without Clerk client, assuming webhook or basic create
-            // For now, let's just create with simple data or fail if stricter
-            await User.create({ clerkId: userId, email: "placeholder@example.com" }); // TODO: Fix with proper User object or Webhook
+            // Fetch real user data from Clerk
+            const clerkUser = await currentUser();
+            const email = clerkUser?.emailAddresses[0]?.emailAddress || `${userId}@placeholder.vertex.com`;
+
+            await User.create({
+                clerkId: userId,
+                email: email,
+                name: clerkUser?.firstName ? `${clerkUser.firstName} ${clerkUser.lastName || ""}`.trim() : "User"
+            });
         }
 
         const newSheet = await Sheet.create({
